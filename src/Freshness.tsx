@@ -1,17 +1,18 @@
 // src/ImageUpload.tsx
 import React, { useState, ChangeEvent } from "react";
 import IAService from "./AIService";
-import { predictionDTO } from "./data";
 const ImageUpload: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [previewURL, setPreviewURL] = useState<string | null>(null);
-  const [result, setResult] = useState<any | null>(null);
+  const [result, setResult] = useState<Array<string | number> | null>(null);
+  const [imageHistory, setImageHistory] = useState<Array<File>>();
 
   // Handle file change event
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImage(file);
+      setImageHistory([...(imageHistory || []), file]);
       setPreviewURL(URL.createObjectURL(file));
       setResult(null);
     }
@@ -19,35 +20,54 @@ const ImageUpload: React.FC = () => {
 
   return (
     <div>
-      <h2>Image Upload</h2>
-      <input type="file" accept="image/*" onChange={handleImageChange} />
-      {previewURL && (
-        <div>
-          <h3>Image Preview:</h3>
-          <img
-            src={previewURL}
-            alt="Preview"
-            style={{ width: "300px", marginTop: "10px" }}
-          />
+      <div>
+        <h2>Image Upload</h2>
+        <input type="file" accept="image/*" onChange={handleImageChange} />
+        {previewURL && (
           <div>
-            <button
-              onClick={async () => {
-                if (image) {
-                  const result = await IAService.getAiPrediction(image);
-                  setResult(result);
-                }
-              }}
-            >
-              Run Freshness Detector
-            </button>
-          </div>
-          {result && (
+            <h3>Image Preview:</h3>
+            <img
+              src={previewURL}
+              alt="Preview"
+              style={{ width: "300px", marginTop: "10px" }}
+            />
             <div>
-              The image is a {result[0]} with a probability of {result[1]}%
+              <button
+                onClick={async () => {
+                  if (image) {
+                    const result = await IAService.getAiPrediction(image);
+                    setResult(result);
+                  }
+                }}
+              >
+                Run Freshness Detector
+              </button>
             </div>
-          )}
-        </div>
-      )}
+            {result && (
+              <div>
+                The image is a {result[0]} with a probability of {result[1]}%
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <div>
+        <h2>Image History</h2>
+        {imageHistory &&
+          imageHistory.map((image, index) => (
+            <img
+              onClick={() => {
+                setPreviewURL(URL.createObjectURL(image));
+                setImage(image);
+                setResult(null);
+              }}
+              key={index}
+              src={URL.createObjectURL(image)}
+              alt="Preview"
+              style={{ width: "100px", marginRight: "10px" }}
+            />
+          ))}
+      </div>
     </div>
   );
 };
