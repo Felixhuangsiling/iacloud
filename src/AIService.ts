@@ -22,7 +22,10 @@ const IAService = {
                 predictedTagProbability = prediction.probability
             }
         }
-        return [predictedTag, predictedTagProbability]
+
+        predictedTagProbability = predictedTagProbability * 100;
+
+        return [predictedTag, predictedTagProbability.toFixed(2)]
     }
 }
 
