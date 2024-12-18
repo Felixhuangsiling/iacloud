@@ -1,0 +1,10 @@
+freshapples
+freshbanana
+freshoranges
+freshpatato
+freshtomato
+rottenapples
+rottenbanana
+rottenoranges
+rottenpatato
+rottentomato
