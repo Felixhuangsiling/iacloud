@@ -1,6 +1,6 @@
 // src/ImageUpload.tsx
 import React, { useState, ChangeEvent } from "react";
-import IAService from "./AIService";
+import {useAiPrediction} from "./AIService";
 import {Divider, Button, Input, Card, CardHeader, CardBody, Image, CardFooter, Chip} from "@nextui-org/react";
 
 const ImageUpload: React.FC = () => {
@@ -8,6 +8,8 @@ const ImageUpload: React.FC = () => {
   const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [result, setResult] = useState<Array<string | number> | null>(null);
   const [imageHistory, setImageHistory] = useState<Array<File>>();
+
+  const aiPredictionController = useAiPrediction();
 
   // Handle file change event
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +24,7 @@ const ImageUpload: React.FC = () => {
 
   const onButtonPress = async () => {
       if (image) {
-          const result = await IAService.getAiPrediction(image);
+          const result = await aiPredictionController.getAiPrediction(image);
           setResult(result);
       }
   }
@@ -49,7 +51,7 @@ const ImageUpload: React.FC = () => {
               </CardBody>
               <CardFooter className="flex flex-col gap-4">
                   <Input type="file" accept="image/*" onChange={handleImageChange}/>
-                  <Button color={"primary"} isDisabled={previewURL === null} onPress={onButtonPress}>
+                  <Button color={"primary"} isLoading={aiPredictionController.isLoading} isDisabled={previewURL === null} onPress={onButtonPress}>
                       Calculer la fraicheur
                   </Button>
                   {result && (
