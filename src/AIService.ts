@@ -38,7 +38,7 @@ export function useAiPrediction() {
         getAiPrediction
     }
 }
-const transformDataToJson = (data: WaterCropPredictionV1Data) => {
+const transformDataToJson = (data: WaterCropPredictionV1Data | WaterCropPredictionV2Data) => {
     return {
         Inputs: {
             input1: [
@@ -88,21 +88,20 @@ export function useWatterCropPrediction() {
 
     const getAiPredictionV2 = async (data: WaterCropPredictionV2Data) => {
         setIsLoading(true);
+        const transformedData = transformDataToJson(data);
         try {
-            const response = await fetch("http://f3e09381-e76c-4a5a-8b70-2440bbf71204.westeurope.azurecontainer.io/score", {
+            const response = await fetch("https://api-ai-cloud.azure-api.net/avg/", {
                 method: "POST",
-                mode: "no-cors",
                 headers: {
-                    "Authorization": `Bearer ${import.meta.env.VITE_ML_TOKEN}`,
-                    "Prediction-Key": import.meta.env.VITE_ML_PREDICTION_KEY,
+                    "Authorization": `Bearer ${import.meta.env.VITE_ML_TOKEN_AVG}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(transformedData),
             });
 
-            const res: WaterCropPredictionPayload = await response.json();
+            const res: any = await response.json();
             setIsLoading(false);
-            return res;
+            return res.Results.WebServiceOutput0[0]["Scored Labels"];
         }
         catch (e) {
             console.log(e);

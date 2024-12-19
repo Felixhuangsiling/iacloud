@@ -125,8 +125,7 @@ function CropWaterRequirementForm({
         weatherCondition: climatCondition,
       };
       const res = await watterCropPrediction.getAiPredictionV2(data);
-      if (res)
-        setWaterPrediction(res.Results.WebServiceOutput0[0]["Scored Labels"]);
+      if (res) setWaterPrediction(res);
     }
   };
 
