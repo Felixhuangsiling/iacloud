@@ -1,5 +1,5 @@
-import {predictionDTO, WaterCropPredictionPayload, WaterCropPredictionV1Data, WaterCropPredictionV2Data} from "./data";
-import {useState} from "react";
+import { predictionDTO, WaterCropPredictionPayload, WaterCropPredictionV1Data, WaterCropPredictionV2Data } from "./data";
+import { useState } from "react";
 import * as process from "node:process";
 
 export function useAiPrediction() {
@@ -7,7 +7,7 @@ export function useAiPrediction() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
 
-    const getAiPrediction = async(image: File) => {
+    const getAiPrediction = async (image: File) => {
         setIsLoading(true);
         const formData = new FormData();
         formData.append("imageData", image);
@@ -38,40 +38,57 @@ export function useAiPrediction() {
         getAiPrediction
     }
 }
-
+const transformDataToJson = (data: WaterCropPredictionV1Data) => {
+    return {
+        Inputs: {
+            input1: [
+                {
+                    "CROP TYPE": data.cropType,
+                    "SOIL TYPE": data.soilType,
+                    "REGION": data.region,
+                    "TEMPERATURE": data.temperature,
+                    "WEATHER CONDITION": data.weatherCondition
+                }
+            ]
+        }
+    };
+};
 export function useWatterCropPrediction() {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
 
-    const getAiPredictionV1 = async(data: WaterCropPredictionV1Data) => {
+    const getAiPredictionV1 = async (data: WaterCropPredictionV1Data) => {
         setIsLoading(true);
-        try{
-            const response = await fetch("http://f3e09381-e76c-4a5a-8b70-2440bbf71204.westeurope.azurecontainer.io/score", {
+        console.log(data);
+        const transformedData = transformDataToJson(data);
+
+        try {
+            const response = await fetch("http://api-ai-cloud.azure-api.net/mlrequest/", {
                 method: "POST",
-                mode: "no-cors",
+                // mode: "no-cors",
                 headers: {
                     "Authorization": `Bearer ${import.meta.env.VITE_ML_TOKEN}`,
-                    "Prediction-Key": import.meta.env.VITE_ML_PREDICTION_KEY,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(transformedData),
             });
 
-            const res: WaterCropPredictionPayload = await response.json();
+            const res: any = await response.json();
+            // console.log("res", res["Results"]["WebServiceOutput0"][0]["Water Consumption Prediction"]);
             setIsLoading(false);
-            return res;
+            return res["Results"]["WebServiceOutput0"][0]["Water Consumption Prediction"];
         }
-        catch (e){
+        catch (e) {
             console.log(e);
             setIsLoading(false);
             return null;
         }
     }
 
-    const getAiPredictionV2 = async(data: WaterCropPredictionV2Data) => {
+    const getAiPredictionV2 = async (data: WaterCropPredictionV2Data) => {
         setIsLoading(true);
-        try{
+        try {
             const response = await fetch("http://f3e09381-e76c-4a5a-8b70-2440bbf71204.westeurope.azurecontainer.io/score", {
                 method: "POST",
                 mode: "no-cors",
@@ -87,7 +104,7 @@ export function useWatterCropPrediction() {
             setIsLoading(false);
             return res;
         }
-        catch (e){
+        catch (e) {
             console.log(e);
             setIsLoading(false);
             return null;
