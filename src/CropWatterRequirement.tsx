@@ -12,12 +12,24 @@ import {
   RadioGroup,
   Select,
   SelectItem,
-  Slider,
+  Slider, SliderValue,
   Switch,
 } from "@nextui-org/react";
+import { useWatterCropPrediction } from "./AIService.ts";
 import Hearth from "./assets/hearth.svg?react";
 import Expert from "./assets/expert.svg?react";
-import { useWatterCropPrediction } from "./AIService.ts";
+import Rain from "./assets/rain.svg?react";
+import Sun from "./assets/sun.svg?react";
+import Wind from "./assets/wind.svg?react";
+import Cloud from "./assets/cloud.svg?react";
+import Humid from "./assets/humid.svg?react";
+import SemiHumid from "./assets/semi-humid.svg?react";
+import Arid from "./assets/arid.svg?react";
+import SemiArid from "./assets/semi-arid.svg?react";
+import Dry from "./assets/dry.svg?react";
+import Wet from "./assets/wet.svg?react";
+import Plant from "./assets/plant.svg?react";
+
 
 interface CropWaterRequirementFormProps {
   expertMode: boolean;
@@ -91,7 +103,7 @@ function CropWaterRequirementForm({
   const [value, setValue] = React.useState(new Set<string>([]));
   const [soilType, setSoliType] = useState("WET");
   const [region, setRegion] = useState("SEMI-ARID");
-  const [tempRange, setTempRange] = useState([10, 50]);
+  const [tempRange, setTempRange] = useState([20, 30]);
   const [temp, setTemp] = useState(10);
   const [climatCondition, setClimatCondition] = useState("SUNNY");
   const [waterPrediction, setWaterPrediction] = useState<null | number>(null);
@@ -101,6 +113,30 @@ function CropWaterRequirementForm({
   const canSend = useMemo(() => value.size > 0, [value]);
   const handleEasySend = () => {};
 
+  const handleSliderChange = (value: SliderValue) =>{
+    if((typeof value) === "number")
+      return
+
+    const newTemp = value as number[];
+
+    if(tempRange[0] === newTemp[0])
+    {
+      if(tempRange[1] < newTemp[1])
+        setTempRange([...tempRange.map(t => t + 10)]);
+      else
+        setTempRange([...tempRange.map(t => t - 10)]);
+    }
+    else if (tempRange[1] === newTemp[1])
+    {
+      if(tempRange[0] < newTemp[0])
+        setTempRange([...tempRange.map(t => t + 10)]);
+      else
+        setTempRange([...tempRange.map(t => t - 10)]);
+    }
+
+
+
+  }
   const handleExpertSend = async () => {
     const cropTypeIt = value.values();
     const cropType = cropTypeIt.next().value!;
@@ -144,7 +180,7 @@ function CropWaterRequirementForm({
           items={cropType}
           selectedKeys={value}
           onSelectionChange={setValue}
-          label="Type de plantation"
+          label={<span className="flex inline-flex flex-row">Type de plantation <Plant/></span>}
           placeholder="Selectionnez un type"
         >
           {(crop) => <SelectItem>{crop.label}</SelectItem>}
@@ -155,9 +191,9 @@ function CropWaterRequirementForm({
           value={soilType}
           onValueChange={setSoliType}
         >
-          <Radio value="HUMID">Humide</Radio>
-          <Radio value="WET">Mouillé</Radio>
-          <Radio value="DRY">Sec</Radio>
+          <Radio value="HUMID" description="Humide"><Humid/></Radio>
+          <Radio value="WET" description="Mouillé"><Wet/></Radio>
+          <Radio value="DRY" description="Sec"><Dry/></Radio>
         </RadioGroup>
         <RadioGroup
           label="Region"
@@ -165,22 +201,23 @@ function CropWaterRequirementForm({
           value={region}
           onValueChange={setRegion}
         >
-          <Radio value="DESERT">Désertique</Radio>
-          <Radio value="HUMID">Humide</Radio>
-          <Radio value="SEMI-ARID">Semi-aride</Radio>
-          <Radio value="SEMI-HUMID">Semi-humide</Radio>
+          <Radio value="DESERT" description="Désertique"><Arid/></Radio>
+          <Radio value="SEMI-ARID" description="Semi-aride"><SemiArid/></Radio>
+          <Radio value="HUMID" description="Humide"><Humid/></Radio>
+          <Radio value="SEMI-HUMID" description="Semi-humide"><SemiHumid/></Radio>
         </RadioGroup>
         {version === "version1" ? (
           <Slider
             className="max-w-md"
-            defaultValue={[10, 50]}
+            defaultValue={[20, 30]}
             value={tempRange}
-            onChange={setTempRange}
+            onChangeEnd={handleSliderChange}
+            formatOptions={{unit: "degree", style: 'unit', unitDisplay: 'narrow'}}
             label="Température"
             maxValue={50}
             minValue={10}
             showSteps={true}
-            step={1}
+            step={10}
           />
         ) : (
           <Slider
@@ -202,10 +239,10 @@ function CropWaterRequirementForm({
           value={climatCondition}
           onValueChange={setClimatCondition}
         >
-          <Radio value="SUNNY">Ensoleillé</Radio>
-          <Radio value="NORMAL">Normal</Radio>
-          <Radio value="RAINY">Pluvieux</Radio>
-          <Radio value="WINDY">Venteux</Radio>
+          <Radio value="SUNNY" description="Ensoleillé"><Sun/></Radio>
+          <Radio value="NORMAL" description="Normal"><Cloud/></Radio>
+          <Radio value="RAINY" description="Pluvieux"><Rain/></Radio>
+          <Radio value="WINDY" description="Venteux"><Wind/></Radio>
         </RadioGroup>
       </CardBody>
       <CardFooter className="flex flex-col gap-4">
